@@ -48,7 +48,28 @@
         "fontFamily": {
           "displayName": "Font family",
           "type": {
-            "text": true
+            "enumeration": [
+              { "value": "Segoe UI", "displayName": "Segoe UI" },
+              { "value": "Sergoe (Bold)", "displayName": "Segoe (Bold)" },
+              { "value": "Segoe UI Semibold", "displayName": "Segoe UI Semibold" },
+              { "value": "Segoe UI Light", "displayName": "Segoe UI Light" },
+              { "value": "DIN", "displayName": "DIN" },
+              { "value": "DIN Light", "displayName": "DIN Light" },
+              { "value": "Arial", "displayName": "Arial" },
+              { "value": "Arial Black", "displayName": "Arial Black" },
+              { "value": "Calibri", "displayName": "Calibri" },
+              { "value": "Consolas", "displayName": "Consolas" },
+              { "value": "Verdana, Geneva, sans-serif", "displayName": "Verdana" },
+              { "value": "Tahoma, Geneva, sans-serif", "displayName": "Tahoma" },
+              { "value": "'Trebuchet MS', Arial, sans-serif", "displayName": "Trebuchet MS" },
+              { "value": "Georgia, 'Times New Roman', serif", "displayName": "Georgia" },
+              { "value": "'Times New Roman', Times, serif", "displayName": "Times New Roman" },
+              { "value": "Roboto, Arial, sans-serif", "displayName": "Roboto" },
+              { "value": "Inter, Arial, sans-serif", "displayName": "Inter" }
+            ]
+          }
+        },
+
           }
         },
         "fontSize": {
@@ -122,7 +143,25 @@
         "fontFamily": {
           "displayName": "Font family",
           "type": {
-            "text": true
+            "enumeration": [
+              { "value": "Segoe UI", "displayName": "Segoe UI" },
+              { "value": "Sergoe (Bold)", "displayName": "Segoe (Bold)" },
+              { "value": "Segoe UI Semibold", "displayName": "Segoe UI Semibold" },
+              { "value": "Segoe UI Light", "displayName": "Segoe UI Light" },
+              { "value": "DIN", "displayName": "DIN" },
+              { "value": "DIN Light", "displayName": "DIN Light" },
+              { "value": "Arial", "displayName": "Arial" },
+              { "value": "Arial Black", "displayName": "Arial Black" },
+              { "value": "Calibri", "displayName": "Calibri" },
+              { "value": "Consolas", "displayName": "Consolas" },
+              { "value": "Verdana, Geneva, sans-serif", "displayName": "Verdana" },
+              { "value": "Tahoma, Geneva, sans-serif", "displayName": "Tahoma" },
+              { "value": "'Trebuchet MS', Arial, sans-serif", "displayName": "Trebuchet MS" },
+              { "value": "Georgia, 'Times New Roman', serif", "displayName": "Georgia" },
+              { "value": "'Times New Roman', Times, serif", "displayName": "Times New Roman" },
+              { "value": "Roboto, Arial, sans-serif", "displayName": "Roboto" },
+              { "value": "Inter, Arial, sans-serif", "displayName": "Inter" }
+            ]
           }
         },
         "fontSize": {
@@ -144,7 +183,13 @@
         "placement": {
           "displayName": "Placement",
           "type": {
-            "text": true
+            "enumeration": [
+              { "value": "left",   "displayName": "Left of value" },
+              { "value": "right",  "displayName": "Right of value" },
+              { "value": "top",    "displayName": "Above value" },
+              { "value": "bottom", "displayName": "Below value" }
+            ]
+
           }
         }
       }
@@ -161,13 +206,23 @@
         "placement": {
           "displayName": "Placement",
           "type": {
-            "text": true
+            "enumeration": [
+              { "value": "left",   "displayName": "Left of value" },
+              { "value": "right",  "displayName": "Right of value" },
+              { "value": "top",    "displayName": "Above value" },
+              { "value": "bottom", "displayName": "Below value" }
+            ]
+
           }
         },
         "builtIn": {
           "displayName": "Built-in icon set",
           "type": {
-            "text": true
+            "enumeration": [
+              { "value": "none",            "displayName": "None" },
+              { "value": "status-circles",  "displayName": "Status circles" }
+            ]
+
           }
         }
       }
@@ -178,79 +233,23 @@
         "mode": {
           "displayName": "Mode",
           "type": {
-            "text": true
+            "enumeration": [
+              { "value": "none",    "displayName": "None" },
+              { "value": "numeric", "displayName": "Numeric" },
+              { "value": "text",    "displayName": "Text" },
+              { "value": "hex",     "displayName": "Hex" }
+            ]
           }
         },
-        "posColor": {
-          "displayName": "Positive color",
-          "type": {
-            "fill": {
-              "solid": {
-                "color": true
-              }
-            }
-          }
-        },
-        "zeroColor": {
-          "displayName": "Zero color",
-          "type": {
-            "fill": {
-              "solid": {
-                "color": true
-              }
-            }
-          }
-        },
-        "negColor": {
-          "displayName": "Negative color",
-          "type": {
-            "fill": {
-              "solid": {
-                "color": true
-              }
-            }
-          }
-        },
-        "goodColor": {
-          "displayName": "Good color",
-          "type": {
-            "fill": {
-              "solid": {
-                "color": true
-              }
-            }
-          }
-        },
-        "warnColor": {
-          "displayName": "Warning color",
-          "type": {
-            "fill": {
-              "solid": {
-                "color": true
-              }
-            }
-          }
-        },
-        "badColor": {
-          "displayName": "Bad color",
-          "type": {
-            "fill": {
-              "solid": {
-                "color": true
-              }
-            }
-          }
-        },
-        "defaultColor": {
-          "displayName": "Default color",
-          "type": {
-            "fill": {
-              "solid": {
-                "color": true
-              }
-            }
-          }
-        }
+        
+"posColor":     { "displayName": "Positive color", "type": { "fill": { "solid": { "color": true }}}},
+        "zeroColor":    { "displayName": "Zero color",     "type": { "fill": { "solid": { "color": true }}}},
+        "negColor":     { "displayName": "Negative color", "type": { "fill": { "solid": { "color": true }}}},
+        "goodColor":    { "displayName": "Good color",     "type": { "fill": { "solid": { "color": true }}}},
+        "warnColor":    { "displayName": "Warn color",     "type": { "fill": { "solid": { "color": true }}}},
+        "badColor":     { "displayName": "Bad color",      "type": { "fill": { "solid": { "color": true }}}},
+        "defaultColor": { "displayName": "Default color",  "type": { "fill": { "solid": { "color": true }}}}
+        "defaultColor": { "displayName": "Default color",  "type": { "fill": { "solid": { "color": true}}}}
       }
     },
     "background": {
@@ -330,7 +329,14 @@
         "url": {
           "displayName": "URL",
           "type": {
-            "text": true
+            "enumeration": [
+              { "value": "none",       "displayName": "None" },
+              { "value": "url",        "displayName": "Open URL" },
+              { "value": "drillthrough","displayName": "Drill through" },
+              { "value": "navigate",   "displayName": "Navigate to page (via URL)" },
+              { "value": "bookmark",   "displayName": "Apply bookmark (via URL)" }
+            ]
+
           }
         }
       }
