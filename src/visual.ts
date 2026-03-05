@@ -6,7 +6,6 @@ import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import DataView = powerbi.DataView;
 import DataViewTable = powerbi.DataViewTable;
 import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
-import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 
 export class Visual implements IVisual {
   private host?: powerbi.extensibility.IVisualHost;
@@ -137,7 +136,7 @@ export class Visual implements IVisual {
     this.valueEl.style.fontSize = `${valSize}px`;
     this.valueEl.style.color = rulesColor || valColorDefault;
 
-    // Icon
+    // Icon (built-in fallback)
     this.iconEl.innerHTML = '';
     let svgToRender: string | undefined = iconSvg;
     if ((!svgToRender || !svgToRender.trim()) && builtIn === 'status-circles') {
@@ -154,7 +153,7 @@ export class Visual implements IVisual {
     this.place(this.nameEl, namePlacement);
     this.valueEl.style.gridRow = '2'; this.valueEl.style.gridColumn = '2';
 
-    // Store action config for click handler
+    // Store action config
     this._actionMode = (this.txt(objects,'action','mode','none')||'none').toLowerCase();
     this._actionUrl = this.txt(objects,'action','url','');
   }
@@ -189,18 +188,26 @@ export class Visual implements IVisual {
     const n = (typeof v === 'number') ? v : Number(v);
     const culture = (this.host as any)?.locale;
 
+    // Basic model-format awareness (subset): detect % and decimals, thousands
+    let model = opt.useModel && opt.modelFmt ? String(opt.modelFmt) : '';
+    let usePct = opt.usePercent;
+    let decimals = opt.decimals;
+    let useThousands = opt.thousands;
+
+    if (model) {
+      if (model.indexOf('%') >= 0) usePct = true;
+      const m = model.match(/0\.0+/); if (m) decimals = Math.max(decimals, m[0].length - 2);
+      if (model.indexOf(',') >= 0) useThousands = true;
+    }
+
     let valueToFormat = n;
     let suffix = opt.suffix || '';
-    if (opt.usePercent) { valueToFormat = n * 100; suffix = suffix || '%'; }
+    if (usePct) { valueToFormat = n * 100; if (!suffix) suffix = '%'; }
 
-    if (opt.useModel && opt.modelFmt) {
-      try { const vf = valueFormatter.create({ format: opt.modelFmt, cultureSelector: culture }); return (opt.prefix||'') + vf.format(valueToFormat) + (suffix||''); } catch {}
-    }
-    if (!opt.useModel && opt.customFmt) {
-      try { const vf = valueFormatter.create({ format: opt.customFmt, cultureSelector: culture }); return (opt.prefix||'') + vf.format(valueToFormat) + (suffix||''); } catch {}
-    }
     if (isFinite(valueToFormat)) {
-      const str = opt.thousands ? valueToFormat.toLocaleString(undefined, { minimumFractionDigits: opt.decimals, maximumFractionDigits: opt.decimals }) : valueToFormat.toFixed(opt.decimals);
+      const str = useThousands
+        ? valueToFormat.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+        : valueToFormat.toFixed(decimals);
       return (opt.prefix||'') + str + (suffix||'');
     }
     return String(v);
