@@ -78,10 +78,10 @@
             "bool": true
           }
         },
-        "customFormat": {
-          "displayName": "Custom format string",
+        "usePercent": {
+          "displayName": "Percent (\u00d7100 and %)",
           "type": {
-            "text": true
+            "bool": true
           }
         },
         "decimals": {
@@ -94,6 +94,24 @@
           "displayName": "Thousands separator",
           "type": {
             "bool": true
+          }
+        },
+        "prefix": {
+          "displayName": "Prefix",
+          "type": {
+            "text": true
+          }
+        },
+        "suffix": {
+          "displayName": "Suffix",
+          "type": {
+            "text": true
+          }
+        },
+        "customFormat": {
+          "displayName": "Custom format string",
+          "type": {
+            "text": true
           }
         }
       }
@@ -124,14 +142,9 @@
           }
         },
         "placement": {
-          "displayName": "Placement",
+          "displayName": "Placement (left/right/top/bottom)",
           "type": {
-            "enumeration": [
-              "left",
-              "right",
-              "top",
-              "bottom"
-            ]
+            "text": true
           }
         }
       }
@@ -146,14 +159,15 @@
           }
         },
         "placement": {
-          "displayName": "Placement",
+          "displayName": "Placement (left/right/top/bottom)",
           "type": {
-            "enumeration": [
-              "left",
-              "right",
-              "top",
-              "bottom"
-            ]
+            "text": true
+          }
+        },
+        "builtIn": {
+          "displayName": "Built-in icon set (none/status-circles)",
+          "type": {
+            "text": true
           }
         }
       }
@@ -162,14 +176,9 @@
       "displayName": "Coloring rules",
       "properties": {
         "mode": {
-          "displayName": "Mode",
+          "displayName": "Mode (none/numeric/text/hex)",
           "type": {
-            "enumeration": [
-              "none",
-              "numeric",
-              "text",
-              "hex"
-            ]
+            "text": true
           }
         },
         "posColor": {
@@ -265,6 +274,33 @@
         }
       }
     },
+    "card": {
+      "displayName": "Card border",
+      "properties": {
+        "borderColor": {
+          "displayName": "Border color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "borderWidth": {
+          "displayName": "Border width (px)",
+          "type": {
+            "numeric": true
+          }
+        },
+        "cornerRadius": {
+          "displayName": "Corner radius (px)",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    },
     "layout": {
       "displayName": "Layout",
       "properties": {
@@ -278,6 +314,23 @@
           "displayName": "Padding (px)",
           "type": {
             "numeric": true
+          }
+        }
+      }
+    },
+    "action": {
+      "displayName": "Click action",
+      "properties": {
+        "mode": {
+          "displayName": "Mode (none/url)",
+          "type": {
+            "text": true
+          }
+        },
+        "url": {
+          "displayName": "URL (report page or bookmark link)",
+          "type": {
+            "text": true
           }
         }
       }

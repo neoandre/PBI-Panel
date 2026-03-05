@@ -34,6 +34,9 @@ export class Visual implements IVisual {
     this.iconEl = document.createElement('div');
     this.iconEl.className = 'icon';
     this.container.appendChild(this.iconEl);
+
+    // Click action handler
+    this.container.onclick = () => this.onClick();
   }
 
   public update(options: VisualUpdateOptions): void {
@@ -46,14 +49,21 @@ export class Visual implements IVisual {
 
     const objects = (dv && dv.metadata && dv.metadata.objects) || ({} as powerbi.DataViewObjects);
 
-    // Layout + background
+    // Layout, background, border
     const gap = this.num(objects, 'layout', 'gap', 6);
     const padding = this.num(objects, 'layout', 'padding', 8);
     (this.container.style as any).gap = `${gap}px`;
     this.container.style.padding = `${padding}px`;
-    const bgColor = this.col(objects, 'background', 'color', '#000000');
-    const bgAlpha = this.num(objects, 'background', 'transparency', 100); // 0..100
+
+    const bgColor = this.col(objects, 'background', 'color', '#FFFFFF');
+    const bgAlpha = this.num(objects, 'background', 'transparency', 0); // 0..100 transparency
     this.container.style.backgroundColor = this.rgba(bgColor, 1 - Math.max(0, Math.min(100, bgAlpha)) / 100);
+
+    const borderColor = this.col(objects, 'card', 'borderColor', '#E5E7EB');
+    const borderWidth = this.num(objects, 'card', 'borderWidth', 0);
+    const cornerRadius = this.num(objects, 'card', 'cornerRadius', 6);
+    this.container.style.border = borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : 'none';
+    (this.container.style as any).borderRadius = `${cornerRadius}px`;
 
     // Fonts & placements
     const nameFont = this.txt(objects, 'nameText', 'fontFamily', 'Segoe UI, Arial');
@@ -67,6 +77,7 @@ export class Visual implements IVisual {
 
     const iconSize = this.num(objects, 'icon', 'size', 18);
     const iconPlacement = this.txt(objects, 'icon', 'placement', 'left');
+    const builtIn = (this.txt(objects, 'icon', 'builtIn', 'none')||'none').toLowerCase();
 
     // Data roles
     let value: any = '';
@@ -91,13 +102,16 @@ export class Visual implements IVisual {
       if (idxIcon >= 0) iconSvg = (row[idxIcon] != null) ? String(row[idxIcon]) : undefined;
     }
 
-    // Value formatting
+    // Value formatting controls
     const useModel = this.bool(objects, 'valueFormat', 'useModelFormat', true);
-    const customFmt = this.txt(objects, 'valueFormat', 'customFormat', '').trim();
+    const usePercent = this.bool(objects, 'valueFormat', 'usePercent', false);
     const decimals = this.num(objects, 'valueFormat', 'decimals', 2);
-    const thousands = this.bool(objects, 'valueFormat', 'thousands', True);
+    const thousands = this.bool(objects, 'valueFormat', 'thousands', true);
+    const prefix = this.txt(objects, 'valueFormat', 'prefix', '');
+    const suffix = this.txt(objects, 'valueFormat', 'suffix', '');
+    const customFmt = this.txt(objects, 'valueFormat', 'customFormat', '').trim();
 
-    const formatted = this.format(value, { useModel, customFmt, decimals, thousands, modelFmt: measureFormat });
+    const formatted = this.format(value, { useModel, customFmt, decimals, thousands, usePercent, prefix, suffix, modelFmt: measureFormat });
 
     // Coloring rules
     const mode = (this.txt(objects, 'rules', 'mode', 'none') || 'none').toLowerCase();
@@ -125,8 +139,15 @@ export class Visual implements IVisual {
 
     // Icon
     this.iconEl.innerHTML = '';
-    if (iconSvg && iconSvg.trim().length > 0) {
-      const svg = this.ensureSvg(iconSvg);
+    let svgToRender: string | undefined = iconSvg;
+    if ((!svgToRender || !svgToRender.trim()) && builtIn === 'status-circles') {
+      // Build a colored circle based on rulesColor
+      const fill = rulesColor || '#28FF18';
+      svgToRender = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24">`+
+                    `<circle cx="12" cy="12" r="10" fill="${fill}"/></svg>`;
+    }
+    if (svgToRender && svgToRender.trim().length > 0) {
+      const svg = this.ensureSvg(svgToRender);
       if (svg) { svg.setAttribute('width', String(iconSize)); svg.setAttribute('height', String(iconSize)); this.iconEl.appendChild(svg); }
     }
 
@@ -134,6 +155,19 @@ export class Visual implements IVisual {
     this.place(this.iconEl, iconPlacement);
     this.place(this.nameEl, namePlacement);
     this.valueEl.style.gridRow = '2'; this.valueEl.style.gridColumn = '2';
+
+    // Store action config for click handler
+    this._actionMode = (this.txt(objects,'action','mode','none')||'none').toLowerCase();
+    this._actionUrl = this.txt(objects,'action','url','');
+  }
+
+  // Click action
+  private _actionMode: string = 'none';
+  private _actionUrl: string = '';
+  private onClick() {
+    if (this._actionMode === 'url' && this._actionUrl && this.host && this.host.launchUrl) {
+      try { this.host.launchUrl(this._actionUrl); } catch {}
+    }
   }
 
   // Helpers
@@ -148,23 +182,37 @@ export class Visual implements IVisual {
     }
   }
 
-  private format(v: any, opt: { useModel: boolean; customFmt: string; decimals: number; thousands: boolean; modelFmt?: string }): string {
+  private format(v: any, opt: { useModel: boolean; customFmt: string; decimals: number; thousands: boolean; usePercent: boolean; prefix: string; suffix: string; modelFmt?: string }): string {
     if (v == null || v === '') return '';
     const n = (typeof v === 'number') ? v : Number(v);
     const culture = (this.host as any)?.locale;
 
-    // Priority 1: model format
+    let valueToFormat = n;
+    let suffix = opt.suffix || '';
+    if (opt.usePercent) { valueToFormat = n * 100; suffix = suffix || '%'; }
+
+    // 1) Model format (if enabled and available)
     if (opt.useModel && opt.modelFmt) {
-      try { return valueFormatter.create({ format: opt.modelFmt, cultureSelector: culture }).format(n); } catch {}
+      try {
+        const vf = valueFormatter.create({ format: opt.modelFmt, cultureSelector: culture });
+        return (opt.prefix||'') + vf.format(valueToFormat) + (suffix||'');
+      } catch {}
     }
-    // Priority 2: custom format string
+
+    // 2) Custom format string
     if (!opt.useModel && opt.customFmt) {
-      try { return valueFormatter.create({ format: opt.customFmt, cultureSelector: culture }).format(n); } catch {}
+      try {
+        const vf = valueFormatter.create({ format: opt.customFmt, cultureSelector: culture });
+        return (opt.prefix||'') + vf.format(valueToFormat) + (suffix||'');
+      } catch {}
     }
-    // Priority 3: decimals + thousands
-    if (isFinite(n)) {
-      const nf = (opt.thousands ? n.toLocaleString(undefined, { minimumFractionDigits: opt.decimals, maximumFractionDigits: opt.decimals }) : n.toFixed(opt.decimals));
-      return nf;
+
+    // 3) Decimals + thousands
+    if (isFinite(valueToFormat)) {
+      const str = opt.thousands
+        ? valueToFormat.toLocaleString(undefined, { minimumFractionDigits: opt.decimals, maximumFractionDigits: opt.decimals })
+        : valueToFormat.toFixed(opt.decimals);
+      return (opt.prefix||'') + str + (suffix||'');
     }
     return String(v);
   }
@@ -207,7 +255,6 @@ export class Visual implements IVisual {
   }
 
   private rgba(hex: string, alpha: number): string {
-    // hex like #RRGGBB or #RGB
     try {
       const h = hex.replace('#','');
       let r:number,g:number,b:number;
