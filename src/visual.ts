@@ -77,7 +77,7 @@ export class Visual implements IVisual {
 
     const iconSize = this.num(objects, 'icon', 'size', 18);
     const iconPlacement = this.txt(objects, 'icon', 'placement', 'left');
-    const builtIn = (this.txt(objects, 'icon', 'builtIn', 'none')||'none').toLowerCase();
+    const builtIn = (this.txt(objects, 'icon', 'builtIn', 'status-circles')||'status-circles').toLowerCase();
 
     // Data roles
     let value: any = '';
@@ -160,26 +160,27 @@ export class Visual implements IVisual {
     this._actionUrl = this.txt(objects,'action','url','');
   }
 
-  // ==== FormattingModel API (Modern Format Pane) ====
+  // ==== Modern Format Pane: build cards/groups/slices with valid shapes ====
   public getFormattingModel(): powerbi.visuals.FormattingModel {
     const cards: powerbi.visuals.FormattingCard[] = [];
     const makeUid = (s: string) => `${s}_uid`;
+    const obj = this.lastObjects || ({} as powerbi.DataViewObjects);
 
-    // Helper creators for common controls
-    const textInput = (objectName:string, propertyName:string, displayName:string, value:string): powerbi.visuals.FormattingSlice => ({
+    // Helper factories (valid shapes only)
+    const textInput = (objectName:string, propertyName:string, displayName:string, value:string, placeholder:string): powerbi.visuals.FormattingSlice => ({
       uid: makeUid(`${objectName}_${propertyName}`),
       displayName,
       control: {
         type: powerbi.visuals.FormattingComponent.TextInput,
-        properties: { descriptor: { objectName, propertyName }, value }
+        properties: { descriptor: { objectName, propertyName }, value, placeholder }
       }
     });
-    const numUpDown = (objectName:string, propertyName:string, displayName:string, value:number, min?:number, max?:number): powerbi.visuals.FormattingSlice => ({
+    const numUpDown = (objectName:string, propertyName:string, displayName:string, value:number): powerbi.visuals.FormattingSlice => ({
       uid: makeUid(`${objectName}_${propertyName}`),
       displayName,
       control: {
         type: powerbi.visuals.FormattingComponent.NumUpDown,
-        properties: { descriptor: { objectName, propertyName }, value, options: { min, max } }
+        properties: { descriptor: { objectName, propertyName }, value }
       }
     });
     const colorPicker = (objectName:string, propertyName:string, displayName:string, value:string): powerbi.visuals.FormattingSlice => ({
@@ -207,48 +208,49 @@ export class Visual implements IVisual {
       }
     });
 
-    const obj = this.lastObjects || ({} as powerbi.DataViewObjects);
-
     // Value card
     cards.push({
-      uid: makeUid('valueText_card'),
-      displayName: 'Measure value',
-      groups: [{
-        uid: makeUid('valueText_group'), displayName: 'Text',
+      uid: makeUid('valueText_card'), displayName: 'Measure value',
+      groups: [{ uid: makeUid('valueText_group'), displayName: 'Text',
         slices: [
-          textInput('valueText','fontFamily','Font family', this.txt(obj,'valueText','fontFamily','Segoe UI, Arial')),
-          numUpDown('valueText','fontSize','Font size', this.num(obj,'valueText','fontSize',28), 8, 120),
+          textInput('valueText','fontFamily','Font family', this.txt(obj,'valueText','fontFamily','Segoe UI, Arial'), 'Enter font family…'),
+          numUpDown('valueText','fontSize','Font size', this.num(obj,'valueText','fontSize',28)),
           colorPicker('valueText','color','Color', this.col(obj,'valueText','color','#0F172A'))
         ]
       }]
     });
 
     // Name card
-    cards.push({
-      uid: makeUid('nameText_card'), displayName:'Measure name',
+    cards.push({ uid: makeUid('nameText_card'), displayName:'Measure name',
       groups: [{ uid: makeUid('nameText_group'), displayName:'Text',
         slices: [
-          textInput('nameText','fontFamily','Font family', this.txt(obj,'nameText','fontFamily','Segoe UI, Arial')),
-          numUpDown('nameText','fontSize','Font size', this.num(obj,'nameText','fontSize',12), 6, 80),
+          textInput('nameText','fontFamily','Font family', this.txt(obj,'nameText','fontFamily','Segoe UI, Arial'), 'Enter font family…'),
+          numUpDown('nameText','fontSize','Font size', this.num(obj,'nameText','fontSize',12)),
           colorPicker('nameText','color','Color', this.col(obj,'nameText','color','#6B7280')),
           dropdown('nameText','placement','Placement', this.txt(obj,'nameText','placement','top'), [
-            { value:'left', displayName:'Left' },{ value:'right', displayName:'Right' },{ value:'top', displayName:'Above' },{ value:'bottom', displayName:'Below' }
+            { value:'left', displayName:'Left of value' },
+            { value:'right', displayName:'Right of value' },
+            { value:'top', displayName:'Above value' },
+            { value:'bottom', displayName:'Below value' }
           ])
         ]
       }]
     });
 
     // Icon card
-    cards.push({
-      uid: makeUid('icon_card'), displayName:'Icon',
+    cards.push({ uid: makeUid('icon_card'), displayName:'Icon',
       groups: [{ uid: makeUid('icon_group'), displayName:'Appearance',
         slices: [
-          numUpDown('icon','size','Size (px)', this.num(obj,'icon','size',18), 8, 128),
+          numUpDown('icon','size','Size (px)', this.num(obj,'icon','size',18)),
           dropdown('icon','placement','Placement', this.txt(obj,'icon','placement','left'), [
-            { value:'left', displayName:'Left' },{ value:'right', displayName:'Right' },{ value:'top', displayName:'Above' },{ value:'bottom', displayName:'Below' }
+            { value:'left', displayName:'Left of value' },
+            { value:'right', displayName:'Right of value' },
+            { value:'top', displayName:'Above value' },
+            { value:'bottom', displayName:'Below value' }
           ]),
           dropdown('icon','builtIn','Built-in icons', this.txt(obj,'icon','builtIn','status-circles'), [
-            { value:'none', displayName:'None' },{ value:'status-circles', displayName:'Status circles' }
+            { value:'none', displayName:'None' },
+            { value:'status-circles', displayName:'Status circles' }
           ])
         ]
       }]
@@ -260,11 +262,11 @@ export class Visual implements IVisual {
         slices: [
           toggle('valueFormat','useModelFormat','Use data model format', this.bool(obj,'valueFormat','useModelFormat', true)),
           toggle('valueFormat','usePercent','Percent (×100 + %)', this.bool(obj,'valueFormat','usePercent', false)),
-          numUpDown('valueFormat','decimals','Decimals', this.num(obj,'valueFormat','decimals', 2), 0, 6),
+          numUpDown('valueFormat','decimals','Decimals', this.num(obj,'valueFormat','decimals', 2)),
           toggle('valueFormat','thousands','Thousands separator', this.bool(obj,'valueFormat','thousands', true)),
-          textInput('valueFormat','prefix','Prefix', this.txt(obj,'valueFormat','prefix','')),
-          textInput('valueFormat','suffix','Suffix', this.txt(obj,'valueFormat','suffix','')),
-          textInput('valueFormat','customFormat','Custom format', this.txt(obj,'valueFormat','customFormat',''))
+          textInput('valueFormat','prefix','Prefix', this.txt(obj,'valueFormat','prefix',''), 'Enter prefix…'),
+          textInput('valueFormat','suffix','Suffix', this.txt(obj,'valueFormat','suffix',''), 'Enter suffix…'),
+          textInput('valueFormat','customFormat','Custom format', this.txt(obj,'valueFormat','customFormat',''), 'e.g.: #,0.0%')
         ]
       }]
     });
@@ -274,7 +276,10 @@ export class Visual implements IVisual {
       groups: [{ uid: makeUid('rules_group'), displayName:'Rules',
         slices: [
           dropdown('rules','mode','Mode', this.txt(obj,'rules','mode','none'), [
-            { value:'none', displayName:'None' },{ value:'numeric', displayName:'Numeric' },{ value:'text', displayName:'Text' },{ value:'hex', displayName:'Hex' }
+            { value:'none', displayName:'None' },
+            { value:'numeric', displayName:'Numeric' },
+            { value:'text', displayName:'Text' },
+            { value:'hex', displayName:'Hex' }
           ]),
           colorPicker('rules','posColor','Positive color', this.col(obj,'rules','posColor','#28FF18')),
           colorPicker('rules','zeroColor','Zero color', this.col(obj,'rules','zeroColor','#FFEA04')),
@@ -292,7 +297,7 @@ export class Visual implements IVisual {
       groups: [{ uid: makeUid('background_group'), displayName:'Background',
         slices: [
           colorPicker('background','color','Background color', this.col(obj,'background','color','#FFFFFF')),
-          numUpDown('background','transparency','Transparency (0-100)', this.num(obj,'background','transparency', 0), 0, 100)
+          numUpDown('background','transparency','Transparency (0-100)', this.num(obj,'background','transparency', 0))
         ]
       }]
     });
@@ -302,8 +307,8 @@ export class Visual implements IVisual {
       groups: [{ uid: makeUid('card_group'), displayName:'Border',
         slices: [
           colorPicker('card','borderColor','Border color', this.col(obj,'card','borderColor','#E5E7EB')),
-          numUpDown('card','borderWidth','Border width (px)', this.num(obj,'card','borderWidth', 0), 0, 20),
-          numUpDown('card','cornerRadius','Corner radius (px)', this.num(obj,'card','cornerRadius', 6), 0, 50)
+          numUpDown('card','borderWidth','Border width (px)', this.num(obj,'card','borderWidth', 0)),
+          numUpDown('card','cornerRadius','Corner radius (px)', this.num(obj,'card','cornerRadius', 6))
         ]
       }]
     });
@@ -311,7 +316,10 @@ export class Visual implements IVisual {
     // Layout
     cards.push({ uid: makeUid('layout_card'), displayName:'Layout',
       groups: [{ uid: makeUid('layout_group'), displayName:'Layout',
-        slices: [ numUpDown('layout','gap','Gap (px)', this.num(obj,'layout','gap', 6), 0, 50), numUpDown('layout','padding','Padding (px)', this.num(obj,'layout','padding', 8), 0, 50) ]
+        slices: [
+          numUpDown('layout','gap','Gap (px)', this.num(obj,'layout','gap', 6)),
+          numUpDown('layout','padding','Padding (px)', this.num(obj,'layout','padding', 8))
+        ]
       }]
     });
 
@@ -319,8 +327,11 @@ export class Visual implements IVisual {
     cards.push({ uid: makeUid('action_card'), displayName:'Click action',
       groups: [{ uid: makeUid('action_group'), displayName:'Action',
         slices: [
-          dropdown('action','mode','Mode', this.txt(obj,'action','mode','none'), [ { value:'none', displayName:'None' }, { value:'url', displayName:'Open URL' } ]),
-          textInput('action','url','URL', this.txt(obj,'action','url',''))
+          dropdown('action','mode','Mode', this.txt(obj,'action','mode','none'), [
+            { value:'none', displayName:'None' },
+            { value:'url', displayName:'Open URL' }
+          ]),
+          textInput('action','url','URL', this.txt(obj,'action','url',''), 'https://…')
         ]
       }]
     });
@@ -417,15 +428,6 @@ export class Visual implements IVisual {
      return null;
   }
 
-  private rgba(hex: string, alpha: number): string {
-    try {
-      const h = hex.replace('#','');
-      let r:number,g:number,b:number;
-      if (h.length===3){ r=parseInt(h[0]+h[0],16); g=parseInt(h[1]+h[1],16); b=parseInt(h[2]+h[2],16);} else { r=parseInt(h.slice(0,2),16); g=parseInt(h.slice(2,4),16); b=parseInt(h.slice(4,6),16);} 
-      return `rgba(${r},${g},${b},${Math.max(0,Math.min(1,alpha)).toFixed(3)})`;
-    } catch { return hex; }
-  }
-
   // Object readers
   private num(objects: powerbi.DataViewObjects, obj: string, prop: string, def: number): number {
     try { const v = (objects as any)[obj]?.[prop]; const n = typeof v==='number'? v: Number(v); return isFinite(n)? n: def; } catch { return def; }
@@ -438,5 +440,18 @@ export class Visual implements IVisual {
   }
   private bool(objects: powerbi.DataViewObjects, obj: string, prop: string, def: boolean): boolean {
     try { const v: any = (objects as any)[obj]?.[prop]; if (typeof v === 'boolean') return v; if (v==='true') return true; if (v==='false') return false; return def; } catch { return def; }
+  }
+
+  // Click action
+  private _actionMode: string = 'none';
+  private _actionUrl: string = '';
+  private onClick() {
+    if (this._actionMode === 'url' && this._actionUrl) {
+      try {
+        const anyHost = this.host as any;
+        if (anyHost && typeof anyHost.launchUrl === 'function') anyHost.launchUrl(this._actionUrl);
+        else window.open(this._actionUrl, '_blank');
+      } catch {}
+    }
   }
 }

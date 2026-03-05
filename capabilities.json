@@ -142,7 +142,7 @@
           }
         },
         "placement": {
-          "displayName": "Placement (left/right/top/bottom)",
+          "displayName": "Placement",
           "type": {
             "text": true
           }
@@ -159,13 +159,13 @@
           }
         },
         "placement": {
-          "displayName": "Placement (left/right/top/bottom)",
+          "displayName": "Placement",
           "type": {
             "text": true
           }
         },
         "builtIn": {
-          "displayName": "Built-in icon set (none/status-circles)",
+          "displayName": "Built-in icon set",
           "type": {
             "text": true
           }
@@ -176,7 +176,7 @@
       "displayName": "Coloring rules",
       "properties": {
         "mode": {
-          "displayName": "Mode (none/numeric/text/hex)",
+          "displayName": "Mode",
           "type": {
             "text": true
           }
@@ -322,13 +322,13 @@
       "displayName": "Click action",
       "properties": {
         "mode": {
-          "displayName": "Mode (none/url)",
+          "displayName": "Mode",
           "type": {
             "text": true
           }
         },
         "url": {
-          "displayName": "URL (report page or bookmark link)",
+          "displayName": "URL",
           "type": {
             "text": true
           }
