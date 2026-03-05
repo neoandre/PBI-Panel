@@ -1,0 +1,141 @@
+{
+  "dataRoles": [
+    {
+      "name": "measure",
+      "kind": "Measure",
+      "displayName": "Measure"
+    },
+    {
+      "name": "condition",
+      "kind": "GroupingOrMeasure",
+      "displayName": "Condition (optional)"
+    },
+    {
+      "name": "iconSvg",
+      "kind": "GroupingOrMeasure",
+      "displayName": "Icon SVG (optional)"
+    }
+  ],
+  "dataViewMappings": [
+    {
+      "table": {
+        "rows": {
+          "select": [
+            {
+              "for": {
+                "in": "measure"
+              }
+            },
+            {
+              "for": {
+                "in": "condition"
+              }
+            },
+            {
+              "for": {
+                "in": "iconSvg"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "objects": {
+    "valueText": {
+      "displayName": "Measure value",
+      "properties": {
+        "fontFamily": {
+          "displayName": "Font family",
+          "type": {
+            "text": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Font size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "nameText": {
+      "displayName": "Measure name",
+      "properties": {
+        "fontFamily": {
+          "displayName": "Font family",
+          "type": {
+            "text": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Font size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "placement": {
+          "displayName": "Placement",
+          "type": {
+            "text": true
+          }
+        }
+      }
+    },
+    "icon": {
+      "displayName": "Icon",
+      "properties": {
+        "size": {
+          "displayName": "Size (px)",
+          "type": {
+            "numeric": true
+          }
+        },
+        "placement": {
+          "displayName": "Placement",
+          "type": {
+            "text": true
+          }
+        }
+      }
+    },
+    "layout": {
+      "displayName": "Layout",
+      "properties": {
+        "gap": {
+          "displayName": "Gap (px)",
+          "type": {
+            "numeric": true
+          }
+        },
+        "padding": {
+          "displayName": "Padding (px)",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    }
+  },
+  "suppressDefaultTitle": true
+}
