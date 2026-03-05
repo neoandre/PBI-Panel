@@ -154,6 +154,9 @@ export class Visual implements IVisual {
       defaultCol: this.col(objects, "rules", "defaultColor", valColorDefault),
     });
 
+    // Container Style
+    this.container.style.display = "grid";
+    
     // Apply Name
     this.nameEl.textContent = measureName || "";
     this.nameEl.style.fontFamily = nameFont;
@@ -181,6 +184,11 @@ export class Visual implements IVisual {
         this.iconEl.appendChild(svg);
       }
     }
+
+    
+    // Default placement settings
+    const namePlacement = (this.txt(objects, 'nameText', 'placement', 'top') || 'top').toLowerCase();
+    const iconPlacement = (this.txt(objects, 'icon', 'placement', 'left') || 'left').toLowerCase();
 
     // Placements
     this.place(this.iconEl, iconPlacement);
