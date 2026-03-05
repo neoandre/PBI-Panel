@@ -146,7 +146,7 @@ export class Visual implements IVisual {
       svgToRender = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${fill}"/></svg>`;
     }
     if (svgToRender && svgToRender.trim().length > 0) {
-      const svg = this.ensureSvg(svgToRender);
+      const svg = this.Svg(svgToRender);
       if (svg) { svg.setAttribute('width', String(iconSize)); svg.setAttribute('height', String(iconSize)); this.iconEl.appendChild(svg); }
     }
 
@@ -339,19 +339,6 @@ export class Visual implements IVisual {
     return { cards };
   }
 
-  // Click action
-  private _actionMode: string = 'none';
-  private _actionUrl: string = '';
-  private onClick() {
-    if (this._actionMode === 'url' && this._actionUrl) {
-      try {
-        const anyHost = this.host as any;
-        if (anyHost && typeof anyHost.launchUrl === 'function') anyHost.launchUrl(this._actionUrl);
-        else window.open(this._actionUrl, '_blank');
-      } catch {}
-    }
-  }
-
   private place(el: HTMLElement, p: string) {
     el.classList.remove('center','right');
     switch ((p || 'left').toLowerCase()) {
@@ -412,6 +399,25 @@ export class Visual implements IVisual {
     return cols.defaultCol;
   }
 
+  private rgba(hex: string, alpha: number): string {
+      try {
+          const h = hex.replace('#','');
+          let r: number, g: number, b: number;
+          if (h.length === 3) {
+              r = parseInt(h[0] + h[0], 16);
+              g = parseInt(h[1] + h[1], 16);
+              b = parseInt(h[2] + h[2], 16);
+          } else {
+              r = parseInt(h.slice(0, 2), 16);
+              g = parseInt(h.slice(2, 4), 16);
+              b = parseInt(h.slice(4, 6), 16);
+          }
+          return `rgba(${r},${g},${b},${Math.max(0, Math.min(1, alpha))})`;
+      } catch {
+          return hex;
+      }
+  }
+  
   private ensureSvg(input: string): SVGSVGElement | null {
     try {
       const trimmed = input.trim();
