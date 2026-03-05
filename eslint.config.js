@@ -1,4 +1,1 @@
-
-export default [{
-  ignores: ["**/.tmp/**", "**/dist/**", "**/node_modules/**"]
-}];
+export default [{ ignores: ["**/.tmp/**", "**/dist/**", "**/node_modules/**"] }];

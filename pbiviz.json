@@ -4,7 +4,7 @@
     "displayName": "Simple Card",
     "guid": "simpleCardVisual",
     "visualClassName": "Visual",
-    "version": "1.0.0.0",
+    "version": "1.0.0.2",
     "description": "Card with measure, optional condition-based coloring, and optional inline SVG icon.",
     "supportUrl": "https://example.local/",
     "gitHubUrl": "https://example.local/"
