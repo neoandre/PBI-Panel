@@ -1,4 +1,3 @@
-
 /* eslint-disable */
 import powerbi from "powerbi-visuals-api";
 
@@ -87,18 +86,17 @@ export class Visual implements IVisual {
     const nameFont = this.txt(objects, "nameText", "fontFamily", "Segoe UI, Arial");
     const nameSize = this.num(objects, "nameText", "fontSize", 12);
     const nameColor = this.col(objects, "nameText", "color", "#6B7280");
+    const nameWeight = this.txt(objects, "nameText", "fontWeight", "normal");
     const namePlacement = (this.txt(objects, 'nameText', 'placement', 'top') || 'top').toLowerCase();
 
     const valFont = this.txt(objects, "valueText", "fontFamily", "Segoe UI, Arial");
     const valSize = this.num(objects, "valueText", "fontSize", 28);
     const valColorDefault = this.col(objects, "valueText", "color", "#0F172A");
+    const valWeight = this.txt(objects, 'valueText', 'fontWeight', 'normal');
 
     const iconSize = this.num(objects, "icon", "size", 18);
     const iconPlacement = (this.txt(objects, 'icon', 'placement', 'left') || 'left').toLowerCase();
     const builtIn = (this.txt(objects, "icon", "builtIn", "status-circles") || "status-circles").toLowerCase();
-
-    const valWeight = this.txt(objects, 'valueText', 'fontWeight', 'normal');
-    this.valueEl.style.fontWeight = valWeight;
 
     // Data roles → first row
     let value: any = "";
@@ -165,12 +163,14 @@ export class Visual implements IVisual {
     this.nameEl.style.fontFamily = nameFont;
     this.nameEl.style.fontSize = `${nameSize}px`;
     this.nameEl.style.color = nameColor;
+    this.nameEl.style.fontWeight = nameWeight;
 
     // Apply Value
     this.valueEl.textContent = formatted || "";
     this.valueEl.style.fontFamily = valFont;
     this.valueEl.style.fontSize = `${valSize}px`;
     this.valueEl.style.color = rulesColor || valColorDefault;
+    this.valueEl.style.fontWeight = valWeight;
 
     // Icon (built-in fallback)
     this.iconEl.innerHTML = "";
@@ -188,11 +188,10 @@ export class Visual implements IVisual {
       }
     }
 
-    // Placements
-    this.place(this.iconEl, iconPlacement);
-    this.place(this.nameEl, namePlacement);
-    this.valueEl.style.gridRow = "2";
-    this.valueEl.style.gridColumn = "2";
+    // Placements - IMPROVED LOGIC
+    this.place(this.iconEl, iconPlacement, 'icon', this.hasVisibleName(), this.hasVisibleIcon());
+    this.place(this.nameEl, namePlacement, 'name', this.hasVisibleName(), this.hasVisibleIcon());
+    this.place(this.valueEl, 'center', 'value', this.hasVisibleName(), this.hasVisibleIcon());
 
     // Store action config
     this._actionMode = (this.txt(objects, "action", "mode", "none") || "none").toLowerCase();
@@ -313,6 +312,20 @@ export class Visual implements IVisual {
               ]
             ),
             numUpDown("valueText", "fontSize", "Font size", this.num(obj, "valueText", "fontSize", 28)),
+            dropdown(
+              "valueText",
+              "fontWeight",
+              "Font weight",
+              this.txt(obj, "valueText", "fontWeight", "normal"),
+              [
+                { value: "lighter", displayName: "Lighter" },
+                { value: "normal", displayName: "Normal" },
+                { value: "600", displayName: "Semi-bold" },
+                { value: "bold", displayName: "Bold" },
+                { value: "700", displayName: "Bold (700)" },
+                { value: "800", displayName: "Extra bold" }
+              ]
+            ),
             colorPicker("valueText", "color", "Color", this.col(obj, "valueText", "color", "#0F172A"))
           ]
         }
@@ -354,6 +367,19 @@ export class Visual implements IVisual {
               ]
             ),
             numUpDown("nameText", "fontSize", "Font size", this.num(obj, "nameText", "fontSize", 12)),
+            dropdown(
+              "nameText",
+              "fontWeight",
+              "Font weight",
+              this.txt(obj, "nameText", "fontWeight", "normal"),
+              [
+                { value: "lighter", displayName: "Lighter" },
+                { value: "normal", displayName: "Normal" },
+                { value: "600", displayName: "Semi-bold" },
+                { value: "bold", displayName: "Bold" },
+                { value: "700", displayName: "Bold (700)" }
+              ]
+            ),
             colorPicker("nameText", "color", "Color", this.col(obj, "nameText", "color", "#6B7280")),
             dropdown("nameText", "placement", "Placement", this.txt(obj, "nameText", "placement", "top"), [
               { value: "left", displayName: "Left of value" },
@@ -510,34 +536,107 @@ export class Visual implements IVisual {
     return { cards };
   }
 
-  private place(el: HTMLElement, p: string) {
-    el.classList.remove("center", "right");
-    switch ((p || "left").toLowerCase()) {
-      case "left":
-        el.style.gridRow = "2";
-        el.style.gridColumn = "1";
-        break;
-      case "right":
-        el.style.gridRow = "2";
-        el.style.gridColumn = "3";
-        el.classList.add("right");
-        break;
-      case "top":
-      case "above":
-        el.style.gridRow = "1";
-        el.style.gridColumn = "2";
-        el.classList.add("center");
-        break;
-      case "bottom":
-      case "below":
-        el.style.gridRow = "3";
-        el.style.gridColumn = "2";
-        el.classList.add("center");
-        break;
-      default:
-        el.style.gridRow = "2";
-        el.style.gridColumn = "1";
+  private place(el: HTMLElement, placement: string, elementType: 'name' | 'icon' | 'value', hasName: boolean, hasIcon: boolean) {
+    el.classList.remove("center", "right", "left-align", "full-width");
+    
+    const p = (placement || "left").toLowerCase();
+    
+    // Value always in center (row 2, col 2)
+    if (elementType === 'value') {
+      el.style.gridRow = "2";
+      el.style.gridColumn = "2";
+      return;
     }
+    
+    // Name placement logic
+    if (elementType === 'name') {
+      switch (p) {
+        case "top":
+        case "above":
+          // If only name above (no icon), center across all 3 columns
+          if (!hasIcon) {
+            el.style.gridRow = "1";
+            el.style.gridColumn = "1 / 4"; // Span all 3 columns
+            el.classList.add("center", "full-width");
+          } else {
+            // Name takes 2 columns on left (cols 1-2), icon on right (col 3)
+            el.style.gridRow = "1";
+            el.style.gridColumn = "1 / 3"; // Columns 1-2
+            el.classList.add("left-align");
+          }
+          break;
+        case "left":
+          // Measure name first (col 1), icon second (col 2), value (col 2)
+          el.style.gridRow = "2";
+          el.style.gridColumn = "1";
+          el.classList.add("left-align");
+          break;
+        case "right":
+          // Measure value (col 2), icon (col 2), measure name last (col 3)
+          el.style.gridRow = "2";
+          el.style.gridColumn = "3";
+          el.classList.add("right");
+          break;
+        case "bottom":
+        case "below":
+          // If only name below (no icon), center across all 3 columns
+          if (!hasIcon) {
+            el.style.gridRow = "3";
+            el.style.gridColumn = "1 / 4"; // Span all 3 columns
+            el.classList.add("center", "full-width");
+          } else {
+            // Name takes 2 columns on left (cols 1-2), icon on right (col 3)
+            el.style.gridRow = "3";
+            el.style.gridColumn = "1 / 3";
+            el.classList.add("left-align");
+          }
+          break;
+        default:
+          el.style.gridRow = "1";
+          el.style.gridColumn = "2";
+          el.classList.add("center");
+      }
+    }
+    
+    // Icon placement logic
+    if (elementType === 'icon') {
+      switch (p) {
+        case "top":
+        case "above":
+          // Icon on right when above (col 3)
+          el.style.gridRow = "1";
+          el.style.gridColumn = "3";
+          break;
+        case "left":
+          // Icon in column 1 when left
+          el.style.gridRow = "2";
+          el.style.gridColumn = "1";
+          break;
+        case "right":
+          // Icon in column 3 when right
+          el.style.gridRow = "2";
+          el.style.gridColumn = "3";
+          el.classList.add("right");
+          break;
+        case "bottom":
+        case "below":
+          // Icon on right when below (col 3)
+          el.style.gridRow = "3";
+          el.style.gridColumn = "3";
+          break;
+        default:
+          el.style.gridRow = "2";
+          el.style.gridColumn = "1";
+      }
+    }
+  }
+
+  private hasVisibleName(): boolean {
+    return this.nameEl.textContent?.trim().length > 0 || false;
+  }
+
+  private hasVisibleIcon(): boolean {
+    return this.iconEl.innerHTML?.trim().length > 0 || false;
   }
 
   private format(
@@ -652,7 +751,7 @@ export class Visual implements IVisual {
     return null;
   }
 
-  // ===== Object readers (the ones that were missing) =====
+  // ===== Object readers =====
   private num(objects: powerbi.DataViewObjects, obj: string, prop: string, def: number): number {
     try {
       const v: any = (objects as any)[obj]?.[prop];
